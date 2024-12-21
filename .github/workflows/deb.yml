@@ -1,0 +1,50 @@
+name: Build deb
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'debian/**'
+      - '.github/workflows/deb.yml'
+
+jobs:
+  check_update:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check latest version
+        uses: actions/checkout@v4
+
+      - name: Test
+        run: |
+          sudo apt update&&sudo apt install -y git wget debhelper dpkg-dev dh-make dh-exec dh-autoreconf qemu-user-static
+          yes | sudo apt install --no-install-recommends -y curl xz-utils \
+          make \
+          clang-tidy \
+          libseccomp-dev \
+          libcap-dev \
+          libc6-dev \
+          binutils uidmap
+
+      - name: Setup Git
+        run: |
+          rm -rf -v build doc logo get-ruri.sh src/include/version.h
+          bash autogen.sh
+          git config --global user.name "root"
+          git config --global user.email "your_email@example.com"
+          git add .
+          git commit -m "Test"
+
+      - name: build deb
+        run: |
+          git archive --prefix=ruri-3.8/ -o ../ruri_3.8.orig.tar.gz HEAD
+          sudo dpkg-buildpackage -F -d
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rurideb-${{ github.sha }}
+          name: rurideb-${{ github.sha }}
+          prerelease: false
+          files: |
+             ../ruri*
