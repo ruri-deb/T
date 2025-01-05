@@ -1,0 +1,8 @@
+/home/user/T/CMakeFiles/ruri.dir
+/home/user/T/CMakeFiles/tidy.dir
+/home/user/T/CMakeFiles/edit_cache.dir
+/home/user/T/CMakeFiles/rebuild_cache.dir
+/home/user/T/CMakeFiles/list_install_components.dir
+/home/user/T/CMakeFiles/install.dir
+/home/user/T/CMakeFiles/install/local.dir
+/home/user/T/CMakeFiles/install/strip.dir
