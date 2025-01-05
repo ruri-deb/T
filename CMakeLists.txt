@@ -6,6 +6,30 @@ project(ruri LANGUAGES C)
 # 检查头文件
 include(CheckIncludeFile)
 
+execute_process(
+    COMMAND date "+%Y-%m-%d"
+    OUTPUT_VARIABLE CMAKE_CURRENT_DATE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+execute_process(
+    COMMAND date "+%H:%M:%S"
+    OUTPUT_VARIABLE CMAKE_CURRENT_TIME
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+add_definitions(-DBUILD_DATE="${CMAKE_CURRENT_DATE}")
+add_definitions(-DBUILD_TIME="${CMAKE_CURRENT_TIME}")
+
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    message(STATUS "Using ccache: ${CCACHE_FOUND}")
+else()
+    message(STATUS "Ccache not found. Compiling with cache will be disabled.")
+endif(CCACHE_FOUND)
+
 check_include_file("time.h" HAVE_TIME_H)
 check_include_file("grp.h" HAVE_GRP_H)
 check_include_file("fcntl.h" HAVE_FCNTL_H)
@@ -97,8 +121,6 @@ set(CFLAGS_LIST
     "-Wall"
     "-Wextra"
     "-Wconversion"
-    "-Wno-newline-eof"
-    "-Wno-gnu-zero-variadic-macro-arguments"
     "-pedantic"
     "-pipe"
 )
@@ -122,7 +144,8 @@ option(BUILD_LIB "BUILD with lib" OFF)
 
 # 根据调试选项修改 CFLAGS
 if(ENABLE_DEBUG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -DDEBUG_BUILD -DRURI_DEBUG -DRURI_DEV")
+    message(WARNING "Warning: DEBUG mode is enabled")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3 -O0 -DDEBUG_BUILD -DRURI_DEBUG -DRURI_DEV")
 else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -DNDEBUG")
 endif()
@@ -144,20 +167,7 @@ execute_process(
 
 add_definitions(-DRURI_COMMIT_ID="${GIT_COMMIT_ID}")
 
-if(PROJECT_LICENSE)
-    file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/ruri/src/*.c ${CMAKE_SOURCE_DIR}/ruri/src/easteregg/*.c)
-else()
-    file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.c ${CMAKE_SOURCE_DIR}/src/easteregg/*.c)
-endif()
-
-set(VERSION 3.8-rc1)
-set(RURI_VERSION ${VERSION})
-
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/config_cmake.h.in"  # 源文件路径
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/include/version.h"     # 目标文件路径
-  @ONLY
-)
+file(GLOB SOURCES ${CMAKE_SOURCE_DIR}/src/*.c ${CMAKE_SOURCE_DIR}/src/easteregg/*.c)
 
 if (BUILD_LIB)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -175,16 +185,18 @@ else ()
         COMMAND strip ruri
         VERBATIM
         )
-    if(PROJECT_LICENSE)
         install (TARGETS ruri DESTINATION /usr/bin/)
-    endif()
 endif()
 
 # on linux clang 14
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    find_library(LCAP cap)
-    find_library(LSECCOMP seccomp)
-    target_link_libraries(ruri ${LCAP} ${LSECCOMP})
+    if (ENABLE_STATIC)
+        target_link_libraries(ruri -lcap -lseccomp)
+    else()
+        find_library(LCAP cap)
+        find_library(LSECCOMP seccomp)
+        target_link_libraries(ruri ${LCAP} ${LSECCOMP})
+    endif()
 endif()
 
 add_custom_target(

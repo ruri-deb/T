@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.69])
-AC_INIT([ruri], [3.8-rc1], [moe-hacker@crack.moe])
+AC_INIT([ruri], [3.8], [moe-hacker@crack.moe])
 AC_PROG_CC
 AM_INIT_AUTOMAKE
 
@@ -54,13 +54,13 @@ AC_SEARCH_LIBS([seccomp_init], [seccomp], [], AC_MSG_ERROR([libseccomp is requir
 AC_SEARCH_LIBS([pthread_create], [pthread], [], AC_MSG_ERROR([pthread is required]))
 
 # Enable optional flags
-CFLAGS_LIST="-flto=auto -fPIE -pie -fstack-protector-all -fdata-sections -fno-omit-frame-pointer -fno-stack-protector -ftrivial-auto-var-init=pattern -fstack-clash-protection -Wno-unused-result -mshstk -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--strip-all -Wl,--disable-new-dtags -Wl,--build-id=sha1 -Wl,-z,norelro -Wl,-z,execstack -Wall -Wextra -Wconversion -Wno-newline-eof -Wno-gnu-zero-variadic-macro-arguments -pedantic -pipe"
+CFLAGS_LIST="-flto=auto -fPIE -pie -fstack-protector-all -fdata-sections -fno-omit-frame-pointer -fno-stack-protector -ftrivial-auto-var-init=pattern -fstack-clash-protection -Wno-unused-result -mshstk -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--strip-all -Wl,--disable-new-dtags -Wl,--build-id=sha1 -Wl,-z,norelro -Wl,-z,execstack -Wall -Wextra -Wconversion -pedantic -pipe"
 LDFLAGS="$LDFLAGS -Wl,-z,relro -Wl,-z,noexecstack -Wl,-z,now"
 
 # Handle optional flags for debug and static builds
 AC_ARG_ENABLE([debug],
     AS_HELP_STRING([--enable-debug], [Enable debug build]),
-    [if test "x$enable_debug" = "xyes"; then CFLAGS="$CFLAGS -g -O0 -DDEBUG_BUILD"; else CFLAGS="$CFLAGS -O2 -DNDEBUG"; fi])
+    [if test "x$enable_debug" = "xyes"; then CFLAGS="$CFLAGS  -g3 -O0 -DDEBUG_BUILD -DRURI_DEBUG -DRURI_DEV" && AC_MSG_NOTICE([Warning: DEBUG mode is enabled.]) && CFLAGS_LIST="$CFLAGS_LIST -g3 -O0 -DDEBUG_BUILD -DRURI_DEBUG -DRURI_DEV"; else CFLAGS="$CFLAGS -O3 -g0 -DNDEBUG" && CFLAGS_LIST="$CFLAGS_LIST -O3 -g0 -DNDEBUG"; fi])
     AM_CONDITIONAL([ENABLE_DEBUG], [test "x$enable_debug" = "xyes"])
 AC_ARG_ENABLE([static],
     AS_HELP_STRING([--enable-static], [Enable static linking]),

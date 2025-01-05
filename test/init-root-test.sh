@@ -17,10 +17,9 @@ export TMPDIR=$(realpath ${TMPDIR})
 mkdir out
 cd out
 cp ../* . -r
-make clean
 ./configure --enable-debug
 check_if_succeed $?
-make
+make -j8 VERBOSE=1 V=1
 check_if_succeed $?
 mv ruri ${TMPDIR}
 check_if_succeed $?

@@ -1,12 +1,16 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ruri_test LANGUAGES CXX)
+project(test-root LANGUAGES CXX)
 
 add_executable(test-root main.cpp)
+add_compile_options(-g3)
+add_compile_options(-O0)
 
-enable_testing()
-
-add_test(NAME ${PROJECT_NAME} COMMAND echo "run" | sudo gdb ./test-root)
+if (VERSION)
+    add_test(NAME ${PROJECT_NAME} COMMAND cd test; echo "run" | sudo gdb ./test-root)
+else()
+    add_test(NAME ${PROJECT_NAME} COMMAND echo "run" | sudo gdb ./test-root)
+endif()
 
 set(CTEST_OUTPUT_ON_FAILURE ON)
 
